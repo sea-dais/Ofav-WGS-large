@@ -41,6 +41,7 @@ sbatch map.slurm
 # Progress: 
 ls -lh mapped*
 ls -l logs/map.3438310/success* | wc
+########### Mapping finished in 3 hours and 10 minuites on spr stampede3
 ###########
 for b in mapped/*.sorted.bam; do samtools quickcheck "$b" || echo "BAD: $b"; done
 
