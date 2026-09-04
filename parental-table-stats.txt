@@ -1,0 +1,35 @@
+=== total rows (incl. header) ===
+413047 parental_table.tsv
+
+=== class distribution ===
+ 384168 hom_x_hom_same
+  10079 hom_x_hom_diff
+   8170 het_x_hom
+   7885 hom_x_het
+   2744 het_x_het
+
+=== informative sites (informative==1) ===
+18799
+=== block-usable informative sites (informative==1 AND has block_id) ===
+17119
+
+=== het_x_hom / hom_x_het block-usable sites only ===
+14465
+=== distinct het-x-hom blocks ===
+1493
+=== SNPs-per-block distribution (top 15 biggest blocks) ===
+     89 11-AD:3840
+     69 11-AD:19
+     68 7-AD:3840
+     67 7-AD:9221
+     65 11-AD:9221
+     65 11-AD:27754
+     64 7-AD:134
+     63 7-AD:27754
+     56 7-AD:8353
+     56 11-AD:49495
+     55 7-AD:57087
+     55 7-AD:204
+     55 11-AD:50005
+     55 11-AD:4059
+     54 7-AD:19
