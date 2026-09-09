@@ -12,7 +12,7 @@ mkdir -p bamlists poolsANGSD
 for BAM in dedup_rg/*-PL.dedup.bam; do
   NAME=$(basename "$BAM" .dedup.bam)
   echo "$BAM" > bamlists/${NAME}.bamlist
-  echo "angsd -bam bamlists/${NAME}.bamlist -sites $SITES -rf regions.txt -ref $REF -doMajorMinor 3 -doMaf 1 -GL 1 -doCounts 1 -dumpCounts 2 -doDepth 1 -maxDepth 2000 -minMapQ 30 -minQ 20 -baq 1 -P 4 -out poolsANGSD/freq_${NAME}" >> angsd.cmds
+  echo "angsd -bam bamlists/${NAME}.bamlist -sites $SITES -rf regions.txt -ref $REF -doMajorMinor 3 -doMaf 1 -GL 1 -doCounts 1 -dumpCounts 3 -doDepth 1 -maxDepth 2000 -minMapQ 30 -minQ 20 -baq 1 -P 4 -out poolsANGSD/freq_${NAME}" >> angsd.cmds
 done
 
 wc -l angsd.cmds        # must equal 6
@@ -182,3 +182,8 @@ done
 #poolsANGSD/freq_PA-11x7-PL.depthGlobal mean=23.6 n=6153
 #poolsANGSD/freq_PB-11x7-PL.depthGlobal mean=28.2 n=6251
 #poolsANGSD/freq_PC-11x7-PL.depthGlobal mean=24.0 n=6174
+
+zcat poolsANGSD/freq_P1-7x11-PL.counts.gz | head
+zcat poolsANGSD/freq_P1-7x11-PL.pos.gz | head
+# confirm same length (row-aligned):
+echo "counts: $(zcat poolsANGSD/freq_P1-7x11-PL.counts.gz | wc -l)  pos: $(zcat poolsANGSD/freq_P1-7x11-PL.pos.gz | wc -l)"

@@ -25,3 +25,5 @@ genmap map -K $K -E 2 -I $IDX -O mappability_k${K}_e2 -bg -T 4
 ### output is mappability_k125_e2.bedgraph
 
 scp dmflores@stampede3.tacc.utexas.edu:/scratch/08717/dmflores/mappability_k125_e2.bedgraph .
+
+scp dmflores@ls6.tacc.utexas.edu:/scratch/08717/dmflores/ofav-wgs-large/fastqc/\*html .
