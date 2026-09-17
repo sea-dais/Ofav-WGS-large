@@ -4,8 +4,10 @@ fit_block_t.py  --  Stage A of the block-level TRD test.
 
 For each phased het x hom block, in each pool, fit a single transmission ratio
 t = fraction of the segregating parent's gametes carrying haplotype A, by
-beta-binomial maximum likelihood over the block's SNP read counts. Test t != 0.5
-with a likelihood-ratio test.
+beta-binomial maximum likelihood over the block's SNP read counts. Test t != 0.5 
+with a likelihood-ratio test, using an asymptotic
+1-df chi-square p-value approximation.
+
 
 INPUTS
 ------
@@ -188,11 +190,11 @@ def fit_block(snps, grid=101):
     lrt = max(2.0 * (ll_full - ll_null), 0.0)
 
     boundary = 1 if (t_hat < BOUNDARY_EPS or t_hat > 1 - BOUNDARY_EPS) else 0
-    # Standard df=1 chi-square. NOTE: when t_hat is on the {0,1} boundary the
-    # asymptotic null is a 50:50 mixture of chi2_0 and chi2_1, so p is only
-    # approximate there; the boundary flag marks those rows for cautious use
-    # (and appropriate handling) in the downstream aggregation.
+    # Asymptotic chi-square approximation with 1 df.
+    # These p-values are labeled "approx" because the null calibration
+    # # can deviate from nominal levels for small blocks and estimated rho.
     p = chi2.sf(lrt, df=1)
+
     return t_hat, rho_hat, ll_full, ll_null, lrt, p, boundary
 
 
@@ -229,7 +231,7 @@ def main():
         out.write("\t".join([
             "pool", "direction", "seg_parent", "chrom", "block_id",
             "n_snps", "n_reads", "t_hat", "rho_hat",
-            "ll_full", "ll_null", "LRT", "p_value", "sign_changes", "boundary"
+            "ll_full", "ll_null", "LRT", "p_value_approx", "sign_changes", "boundary"
         ]) + "\n")
 
         for pool in args.pools.split(","):

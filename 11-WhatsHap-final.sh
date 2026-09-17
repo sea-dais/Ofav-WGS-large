@@ -150,6 +150,14 @@ bcftools norm -m- -f $REF family_phased.vcf.gz -Oz -o family_norm.vcf.gz
 bcftools index -t family_norm.vcf.gz
 echo "$(count family_norm.vcf.gz) positions" # 3851082
 
+# 1b. *** NEW ***  Flag every position touched by >1 record of ANY type
+#     (SNP, MNP, indel, complex) on the FULL normalized set. These are the
+#     ambiguous multi-representation loci (e.g. a SNP overlapping an MNP) that
+#     produce GT/AD contradictions. Detect them BEFORE type-filtering removes
+#     the non-SNP rows and hides the overlap.
+bcftools view -H family_norm.vcf.gz | cut -f1,2 | sort | uniq -d > complex_positions.txt
+echo "complex/multi-record positions to exclude: $(wc -l < complex_positions.txt)" #110507
+
 # 2. subset to the two parents, trim now absent Alts
 bcftools view -s "${P1_NAME},${P2_NAME}" family_norm.vcf.gz \
   | bcftools view -a -Oz -o s2_parents.vcf.gz
@@ -161,15 +169,15 @@ bcftools view -m2 -M2 -v snps -c 1 s2_parents.vcf.gz -Oz -o s3_biallelic_snps.vc
 bcftools index -t s3_biallelic_snps.vcf.gz
 echo "stage3 biallelic parent SNPs: $(count s3_biallelic_snps.vcf.gz) positions" # 1440687
 
-# 4. drop positions that have >1 SNP row: 
-bcftools view -H s3_biallelic_snps.vcf.gz | cut -f1,2 | sort | uniq -d > multi.pos
-echo "  (multiallelic SNP positions removed: $(wc -l < multi.pos))" # 2596
+# 4. *** CHANGED ***  Exclude the complex positions found in 1b (not a fresh
+#     within-SNP dup check). This removes any SNP that shared its position with
+#     an MNP/indel/other record, which the old Step 4 missed.
 bcftools view s3_biallelic_snps.vcf.gz \
   | awk -F'\t' 'NR==FNR{bad[$1"\t"$2]=1; next} /^#/{print; next} !(($1"\t"$2) in bad){print}' \
-      multi.pos - \
+      complex_positions.txt - \
   | bcftools view -Oz -o s4_unique_snps.vcf.gz
 bcftools index -t s4_unique_snps.vcf.gz
-echo "stage4 unique-position SNPs:  $(count s4_unique_snps.vcf.gz) positions" # 1438091
+echo "stage4 clean isolated SNPs: $(count s4_unique_snps.vcf.gz) positions" #1407582
 
 # 5. hardening with DP floor, no missing GT, allele balance: 
 MIN_PARENT_DP=2                          # parental depth floor
@@ -275,10 +283,12 @@ for BAM in dedup_rg/*-PL.dedup.bam; do
 done
 
 wc -l angsd.cmds        # must equal 6
+head -n 1 angsd.cmds > test.angsd        # first line
+mkjob.sh -n test.angsd -j test.angsd -c 4 -e angsd094
+
 
 mkjob.sh -n angsd -j angsd.cmds -c 4 -e angsd094
 sbatch angsd.slurm
-
 
 # =============================================================================
 # STEP 6. VALIDATE the foundation before any distortion inference.
@@ -286,7 +296,8 @@ sbatch angsd.slurm
 #   off, the parental hardening is still letting false hets through — tighten
 #   MIN_ALT_READS / MIN_BALANCE and rebuild from step 2.
 # =============================================================================
-for POOL in P1-7x11-PL PB-11x7-PL; do
+MIN_POOL_READS=10
+for POOL in P1-7x11-PL; do
   echo "=== consistency: $POOL ==="
   python3 check_site_consistency.py parental_table.tsv "$OUTDIR" "$POOL" "$MIN_POOL_READS"
 done

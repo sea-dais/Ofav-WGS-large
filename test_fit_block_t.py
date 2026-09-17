@@ -473,7 +473,7 @@ def main():
 
             lrt = float(row["LRT"])
 
-            p = float(row["p_value"])
+            p = float(row["p_value_approx"])
 
             error = abs(t_hat - true_t)
 

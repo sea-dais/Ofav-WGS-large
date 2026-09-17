@@ -68,6 +68,13 @@ median:   19
 max:      711
 mean:     32.2423
 
+
+
+idev -p spr -N 1 -n 1 -t 08:00:00 -A IBN21018
+conda activate ANGSD
+
+REF="$SCRATCH/OfavGenome/GCF_002042975.1_ofav_dov_v1_genomic.fna"
+
 angsd -bam bamlists/P1-7x11-PL.bamlist \
       -sites angsd_sites.nuc.txt \
       -rf angsd_sites.regions.txt \
